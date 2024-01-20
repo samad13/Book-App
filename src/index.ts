@@ -1,31 +1,42 @@
 import express from 'express';
-import http from 'http';
 require("dotenv").config();
 import cors from 'cors';
-import compression from 'compression'
-import cookieParser from 'cookie-parser'
-import mongoose from 'mongoose'
+import compression from 'compression';
+import morgan from 'morgan';
+import mongoose from 'mongoose';
+import bookRouter from './router/bookRouter';
 
 const app = express();
 app.use(
     cors({
-        credentials: true,
+        origin: 'http://localhost:8080',
     })
 );
 
+//middleware
+app.use(morgan('tiny'));
 app.use(compression());
 app.use(express.json());
-app.use(cookieParser());
-
-const server = http.createServer(app)
+app.use(express.urlencoded({ extended: false }));
 
 
+app.use('api/books', bookRouter);
 
 
-mongoose.Promise = Promise
-mongoose.connect(process.env.MONGO_URI)
-mongoose.connection.on('error', (error: Error) => console.log(error))
+const start = async () => {
+    if (!process.env.MONGO_URI) throw new Error('MONGO_URI is required')
+    try {
+        await mongoose.connect(process.env.MONGO_URI)
+    } catch (err) {
+        throw new Error('database eror')
+    }
+    app.listen(8080, () => console.log('Server running http://localhost:8080/'))
 
-app.listen(8080, () => {
-    console.log('Server running http://localhost:8080/')
-})
+}
+// mongoose.Promise = Promise
+// mongoose.connect(process.env.MONGO_URI)
+// mongoose.connection.on('error', (error: Error) => console.log(error))
+//  check what this is for from the preveios vd
+
+start()
+
