@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import Book from '../models/book';
-import asyncHandler from '../middleware/asyncHandler'
-
+import asyncHandler from 'express-async-handler';
 
 // @desc    Fetch single book
 // @route   GET /api/books/:id
@@ -9,16 +8,158 @@ import asyncHandler from '../middleware/asyncHandler'
 const getBookById = asyncHandler(async (req: Request, res: Response) => {
     const book = await Book.findById(req.params.id);
     if (book) {
-        return res.json(book);
+        res.json(book);
     } else {
-        return res.status(404).json({ message: 'Product not found' });
+        res.status(404).json({ message: 'Product not found' });
     }
 });
 
-export {
-    getBookById
-}
 
+
+
+
+// // @desc    Fetch all books
+// // @route   GET /api/books
+// // @access  Public
+const getBooks = asyncHandler(async (req, res) => {
+    //     const pageSize = process.env.PAGINATION_LIMIT;
+    //     const page = Number(req.query.pageNumber) || 1;
+
+    //     const keyword = req.query.keyword
+    //         ? {
+    //             name: {
+    //                 $regex: req.query.keyword,
+    //                 $options: 'i',
+    //             },
+    //         }
+    //         : {};
+
+    //     const count = await Book.countDocuments({ ...keyword });
+    //     const books = await Book.find({ ...keyword })
+    //         .limit(pageSize)
+    //         .skip(pageSize * (page - 1));
+
+    //     res.json({ books, page, pages: Math.ceil(count / pageSize) });
+});
+
+
+// @desc    Create a Book
+// @route   POST /api/books
+// @access  Private/Admin
+const creatBook = asyncHandler(async (req: Request, res: Response) => {
+    const book = new Book({
+        name: req.body.name,
+        price: req.body.price,
+        user: req.user._id,
+        image: req.body.image,
+        genre: req.body.genre,
+        countInStock: req.body.countInStock,
+        numReviews: req.body.numReviews,//ask
+        description: req.body.description,
+    });
+
+    const creatBook = await book.save();
+    res.status(201).json(creatBook);
+});
+
+// @desc    Update a book
+// @route   PUT /api/books/:id
+// @access  Private/Admin
+const updateBook = asyncHandler(async (req, res) => {
+    const { name, price, description, image, genre, countInStock } =
+        req.body;
+
+    const book = await Book.findById(req.params.id);
+
+    if (book) {
+        book.name = name;
+        book.price = price;
+        book.description = description;
+        book.image = image;
+        book.genre = genre;
+        book.countInStock = countInStock;
+
+        const updatedBook = await book.save();
+        res.json(updatedBook);
+    } else {
+        res.status(404);
+        throw new Error('book not found');
+    }
+});
+
+// @desc    Delete a book
+// @route   DELETE /api/books/:id
+// @access  Private/Admin
+const deleteBook = asyncHandler(async (req, res) => {
+    const book = await Book.findById(req.params.id);
+
+    if (book) {
+        await Book.deleteOne({ _id: book._id });
+        res.json({ message: 'book removed' });
+    } else {
+        res.status(404);
+        throw new Error('book not found');
+    }
+});
+
+// @desc    Create new review
+// @route   POST /api/books/:id/reviews
+// @access  Private
+const createBookReview = asyncHandler(async (req, res) => {
+    const { rating, comment } = req.body;
+
+    const book = await Book.findById(req.params.id);
+
+    if (book) {
+        const alreadyReviewed = book.reviews.find(
+            (r) => r.user.toString() === req.user._id.toString()
+        );
+
+        if (alreadyReviewed) {
+            res.status(400);
+            throw new Error('book already reviewed');
+        }
+
+        const review = {
+            name: req.user.name,
+            rating: Number(rating),
+            user: req.user._id,
+        };
+
+        book.reviews.push(review);
+
+        book.numReviews = book.reviews.length;
+
+        book.rating =
+            book.reviews.reduce((acc, item) => item.rating + acc, 0) /
+            book.reviews.length;
+
+        await book.save();
+        res.status(201).json({ message: 'Review added' });
+    } else {
+        res.status(404);
+        throw new Error('book not found');
+    }
+});
+
+// @desc    Get top rated books
+// @route   GET /api/books/top
+// @access  Public
+const getTopbooks = asyncHandler(async (req, res) => {
+    const books = await Book.find({}).sort({ rating: -1 }).limit(6);
+
+    res.json(books);
+});
+
+export {
+    getbooks,
+    getBookById,
+    creatBook,
+    updateBook,
+    deleteBook,
+    createBookReview,
+    getTopbooks
+};
 
 
 
