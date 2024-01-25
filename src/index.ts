@@ -5,6 +5,7 @@ import compression from 'compression';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import bookRouter from './router/bookRouter';
+import orderRouter from './router/orderRoutes';
 
 const app = express();
 app.use(
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: false }));
 
 
 app.use('api/books', bookRouter);
+app.use('api/order', orderRouter);
 
 
 const start = async () => {
@@ -33,10 +35,6 @@ const start = async () => {
     app.listen(8080, () => console.log('Server running http://localhost:8080/'))
 
 }
-// mongoose.Promise = Promise
-// mongoose.connect(process.env.MONGO_URI)
-// mongoose.connection.on('error', (error: Error) => console.log(error))
-//  check what this is for from the preveios vd
 
 start()
 
