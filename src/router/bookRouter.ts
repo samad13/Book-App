@@ -1,9 +1,9 @@
 import express from 'express';
 const router = express.Router();
 import {
-    getbooks,
+    getBooks,
     getBookById,
-    creatBook,
+    createBook,
     updateBook,
     deleteBook,
     createBookReview,
@@ -12,7 +12,7 @@ import {
 import checkObjectId from '../middleware/checkObjectId';
 
 
-router.route('/').get(getbooks).post(creatBook);
+router.route('/').get(getBooks).post(createBook);
 router.route('/:id/reviews').post(checkObjectId, createBookReview);
 router.get('/top', getTopbooks);
 
@@ -23,3 +23,4 @@ router
     .delete(checkObjectId, deleteBook)
 
 export default router;
+//export { router as bookRouter };

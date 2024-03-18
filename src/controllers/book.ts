@@ -2,6 +2,9 @@ import express, { Request, Response } from 'express';
 import Book from '../models/book';
 import asyncHandler from 'express-async-handler';
 
+interface AuthenticatedRequest extends Request {
+    user: { _id: string; name: string };
+}
 // @desc    Fetch single book
 // @route   GET /api/books/:id
 // @access  Public
@@ -21,32 +24,32 @@ const getBookById = asyncHandler(async (req: Request, res: Response) => {
 // // @desc    Fetch all books
 // // @route   GET /api/books
 // // @access  Public
-const getBooks = asyncHandler(async (req, res) => {
-    //     const pageSize = process.env.PAGINATION_LIMIT;
-    //     const page = Number(req.query.pageNumber) || 1;
+const getBooks = asyncHandler(async (req: Request, res: Response) => {
+    const pageSize = Number(process.env.PAGINATION_LIMIT);
+    const page = Number(req.query.pageNumber) || 1;
 
-    //     const keyword = req.query.keyword
-    //         ? {
-    //             name: {
-    //                 $regex: req.query.keyword,
-    //                 $options: 'i',
-    //             },
-    //         }
-    //         : {};
+    const keyword = req.query.keyword
+        ? {
+            name: {
+                $regex: req.query.keyword,
+                $options: 'i',
+            },
+        }
+        : {};
 
-    //     const count = await Book.countDocuments({ ...keyword });
-    //     const books = await Book.find({ ...keyword })
-    //         .limit(pageSize)
-    //         .skip(pageSize * (page - 1));
+    const count = await Book.countDocuments({ ...keyword });
+    const books = await Book.find({ ...keyword })
+        .limit(pageSize)
+        .skip(pageSize * (page - 1));
 
-    //     res.json({ books, page, pages: Math.ceil(count / pageSize) });
+    res.json({ books, page, pages: Math.ceil(count / pageSize) });
 });
 
 
 // @desc    Create a Book
 // @route   POST /api/books
 // @access  Private/Admin
-const creatBook = asyncHandler(async (req: Request, res: Response) => {
+const createBook = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const book = new Book({
         name: req.body.name,
         price: req.body.price,
@@ -58,14 +61,14 @@ const creatBook = asyncHandler(async (req: Request, res: Response) => {
         description: req.body.description,
     });
 
-    const creatBook = await book.save();
-    res.status(201).json(creatBook);
+    const createdBook = await book.save();
+    res.status(201).json(createBook);
 });
 
 // @desc    Update a book
 // @route   PUT /api/books/:id
 // @access  Private/Admin
-const updateBook = asyncHandler(async (req, res) => {
+const updateBook = asyncHandler(async (req: Request, res: Response) => {
     const { name, price, description, image, genre, countInStock } =
         req.body;
 
@@ -90,7 +93,7 @@ const updateBook = asyncHandler(async (req, res) => {
 // @desc    Delete a book
 // @route   DELETE /api/books/:id
 // @access  Private/Admin
-const deleteBook = asyncHandler(async (req, res) => {
+const deleteBook = asyncHandler(async (req: Request, res: Response) => {
     const book = await Book.findById(req.params.id);
 
     if (book) {
@@ -105,8 +108,8 @@ const deleteBook = asyncHandler(async (req, res) => {
 // @desc    Create new review
 // @route   POST /api/books/:id/reviews
 // @access  Private
-const createBookReview = asyncHandler(async (req, res) => {
-    const { rating, comment } = req.body;
+const createBookReview = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { rating } = req.body;
 
     const book = await Book.findById(req.params.id);
 
@@ -144,21 +147,18 @@ const createBookReview = asyncHandler(async (req, res) => {
 // @desc    Get top rated books
 // @route   GET /api/books/top
 // @access  Public
-const getTopbooks = asyncHandler(async (req, res) => {
+const getTopbooks = asyncHandler(async (req: Request, res: Response) => {
     const books = await Book.find({}).sort({ rating: -1 }).limit(6);
 
     res.json(books);
 });
 
 export {
-    getbooks,
+    getBooks,
     getBookById,
-    creatBook,
+    createBook,
     updateBook,
     deleteBook,
     createBookReview,
     getTopbooks
-};
-
-
-
+}

@@ -1,18 +1,18 @@
-import express from 'express';
-const router = express.Router();
-import {
-    addOrderItems,
-    getMyOrders,
-    getOrderById,
-    updateOrderToPaid,
-    updateOrderToDelivered,
-    getOrders,
-} from '../controllers/order';
+// import express from 'express';
+// const router = express.Router();
+// import {
+//     addOrderItems,
+//     getMyOrders,
+//     getOrderById,
+//     updateOrderToPaid,
+//     updateOrderToDelivered,
+//     getOrders,
+// } from '../controllers/order';
 
-router.route('/').post(addOrderItems).get(getOrders);
-router.route('/mine').get(getMyOrders);
-router.route('/:id').get(getOrderById);
-router.route('/:id/pay').put(updateOrderToPaid);
-router.route('/:id/deliver').put(updateOrderToDelivered);
+// router.route('/').post(addOrderItems).get(getOrders);
+// router.route('/mine').get(getMyOrders);
+// router.route('/:id').get(getOrderById);
+// router.route('/:id/pay').put(updateOrderToPaid);
+// router.route('/:id/deliver').put(updateOrderToDelivered);
 
-export default router;
+// export default router;
