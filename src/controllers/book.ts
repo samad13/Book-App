@@ -2,9 +2,8 @@ import express, { Request, Response } from 'express';
 import Book from '../models/book';
 import asyncHandler from 'express-async-handler';
 
-interface AuthenticatedRequest extends Request {
-    user: { _id: string; name: string };
-}
+
+
 // @desc    Fetch single book
 // @route   GET /api/books/:id
 // @access  Public
@@ -49,20 +48,31 @@ const getBooks = asyncHandler(async (req: Request, res: Response) => {
 // @desc    Create a Book
 // @route   POST /api/books
 // @access  Private/Admin
-const createBook = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+const createBook = asyncHandler(async (req: Request, res: Response) => {
+    const {
+        name,
+        price,
+        createdBy,
+        image,
+        genre,
+        countInStock,
+        numReviews,//ask
+        description,
+    } = req.body;
+    const { userId } = req.params
     const book = new Book({
-        name: req.body.name,
-        price: req.body.price,
-        user: req.user._id,
-        image: req.body.image,
-        genre: req.body.genre,
-        countInStock: req.body.countInStock,
-        numReviews: req.body.numReviews,//ask
-        description: req.body.description,
+        name,
+        price,
+        createdBy,
+        image,
+        genre,
+        countInStock,
+        numReviews,
+        description,
     });
 
     const createdBook = await book.save();
-    res.status(201).json(createBook);
+    res.status(201).json(createdBook);
 });
 
 // @desc    Update a book
@@ -108,8 +118,9 @@ const deleteBook = asyncHandler(async (req: Request, res: Response) => {
 // @desc    Create new review
 // @route   POST /api/books/:id/reviews
 // @access  Private
-const createBookReview = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+const createBookReview = asyncHandler(async (req: Request, res: Response) => {
     const { rating } = req.body;
+    const { user } = req.params
 
     const book = await Book.findById(req.params.id);
 
@@ -122,7 +133,6 @@ const createBookReview = asyncHandler(async (req: AuthenticatedRequest, res: Res
             res.status(400);
             throw new Error('book already reviewed');
         }
-
         const review = {
             name: req.user.name,
             rating: Number(rating),

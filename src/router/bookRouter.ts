@@ -23,4 +23,3 @@ router
     .delete(checkObjectId, deleteBook)
 
 export default router;
-//export { router as bookRouter };
